@@ -1,3 +1,5 @@
+
+
 // This file is part of www.nand2tetris.org
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
@@ -39,5 +41,40 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    // alu input: ARegister or Memory
+    Mux16(a=aout, b=inM, sel=instruction[12], out=amout);
+    
+    ALU(x=dout, y=amout, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=aluout, zr=zr, ng=ng);
+
+    // if a and dest-a aluoutput to ARegister
+    // else if a and not dest-a instruction
+    And(a=instruction[5], b=instruction[15], out=loada1);
+    Mux16(a=instruction, b=aluout, sel=loada1, out=ain);
+    Not(in=instruction[15], out=ainstruction);
+    Or(a=loada1, b=ainstruction, out=loada);
+    ARegister(in=ain, load=loada, out=aout);
+
+    // if a and dest-d aluoutput to DRegister
+    And(a=instruction[4], b=instruction[15], out=loadd);
+    DRegister(in=aluout, load=loadd, out=dout);
+
+    And(a=instruction[15], b=instruction[3], out=writeM);
+    And16(a=aluout, b=true, out=outM);
+    And16(a=aout, b=true, out[0..14]=addressM);
+
+    // pc load or increment or reset
+    And(a=instruction[2], b=ng, out=loadpc1);
+    And(a=instruction[1], b=zr, out=loadpc2);
+    Not(in=ng, out=notng);
+    Not(in=zr, out=notzr);
+    And(a=notng, b=notzr, out=aluoutplus);
+    And(a=instruction[0], b=aluoutplus, out=loadpc3);
+    And(a=instruction[0], b=instruction[1], out=loadpc01);
+    And(a=loadpc01, b=instruction[2], out=loadpc4);
+    Or(a=loadpc1, b=loadpc2, out=loadpc12);
+    Or(a=loadpc3, b=loadpc4, out=loadpc34);
+    Or(a=loadpc12, b=loadpc34, out=loadpc1234);
+    And(a=loadpc1234, b=instruction[15], out=loadpc);
+    Not(in=loadpc, out=incpc);
+    PC(in=aout, load=loadpc, inc=incpc, reset=reset, out[0..14]=pc);
 }
