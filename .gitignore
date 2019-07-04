@@ -1,0 +1,7 @@
+*.tst
+*.out
+*.cmp
+*.hack
+
+06/*/*.asm
+!06/*/*.hack
