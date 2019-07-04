@@ -70,6 +70,8 @@ func (p *Parser) CommandType() int {
 
 	if opecode == "push" {
 		return C_PUSH
+	} else if opecode == "pop" {
+		return C_POP
 	}
 	return C_ARITHMETIC
 }
